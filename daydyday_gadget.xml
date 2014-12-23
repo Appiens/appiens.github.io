@@ -1,0 +1,743 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<Module>
+  <ModulePrefs title="Day By Day" scrolling="true" author_email="info@appiens.com" height="400">
+    <Require feature="opensocial-0.8" />
+    <Require feature="locked-domain"/>
+    <Require feature='auth-refresh'/>
+    <Require feature="dynamic-height"/>
+    <Require feature="minimessage"/>
+      <OAuth>
+      <Service name="google">
+        <Access url="https://www.google.com/accounts/OAuthGetAccessToken" method="GET" /> 
+        <Request url="https://www.google.com/accounts/OAuthGetRequestToken?scope=https://www.googleapis.com/auth/tasks" method="GET" />
+        <Authorization url="https://www.google.com/accounts/OAuthAuthorizeToken?oauth_callback=http://oauth.gmodules.com/gadgets/oauthcallback" /> 
+      </Service>
+    </OAuth>
+    <Locale messages="https://appiens.github.io/lang/ALL_ALL.xml"/>
+    <Locale lang="ru" messages="https://appiens.github.io/lang/ru_ALL.xml"/>
+  </ModulePrefs>
+  <Content type="html">
+  <![CDATA[
+  <style>
+    html {height: 100%;}
+    body {height:auto !important; min-height:100%; height:100%; position:relative; }
+    #footer {
+      background:white;
+      border-top: thin solid slategray;
+      border-bottom: thin solid slategray;
+      height: 35px
+      }
+
+    #footerWatch {
+      background:white;
+      border-top: thin solid slategray;
+      border-bottom: thin solid slategray;
+      height: 35px
+      }
+
+    #footerWatchDown {
+        display: block;
+        height: 25px
+    }
+
+  	#main {
+	  margin: 0px;
+	  padding: 0px;
+      font-size: small;
+      padding-bottom: 50px;
+	}
+
+	#watch {
+	  margin: 0px;
+	  padding: 0px;
+      font-size: small;
+	}
+	
+	#listId {
+  	  margin: 0;
+  	  padding: 0;
+	}
+
+	#div-notes {
+	  display: block;
+	}
+
+	.collapsibleList li{
+    	  list-style-image:none; 
+    	  list-style-type:none;
+          cursor:auto;
+          list-style: none;
+  	      padding: 0;
+  	      margin: 0;
+	}
+
+    li.collapsibleListOpen{
+         cursor:pointer;
+         background: url('https://appiens.github.io/images/button-minus.png'); <!--no-repeat top left;-->
+         background-position: 0 5px;
+         background-size: 12px 12px;
+         background-repeat: no-repeat;
+  	     margin: 0;
+  	     list-style: none;
+  	     padding: 0 0 0 15px;
+    }
+
+    li.collapsibleListClosed{
+         cursor:pointer;
+         background: url('https://appiens.github.io/images/button-plus.png'); <!--no-repeat top left;-->
+         background-position: 0 5px;
+         background-size: 12px 12px;
+         background-repeat: no-repeat;
+  	     margin: 0;
+  	     list-style: none;
+  	     padding: 0 0 0 15px;
+    }
+       
+	ul {
+    padding: 0; /* Убираем поля */
+    	margin-left: 5px; /* Отступ слева */
+	}
+
+	.myStyle span {
+    	text-indent:25px;
+        display:inline-block;
+    	cursor:pointer;
+	}
+
+    .new-select-style-wpandyou select, textarea, input[type=text], input[type=date] {
+        font-family: Arial;
+        width:87%;
+        min-height:20px;
+        display:block;
+        margin-bottom:8px;
+        margin-top:5px;
+        padding-left:5px;
+        outline: none;
+        box-sizing:content-box;
+    }
+
+    .new-select-style-wpandyou  input[type=date] {
+        font-family: Arial;
+        margin-bottom:8px;
+        margin-top:5px;
+        padding-left:5px;
+        padding-right: 0px;
+        outline: none;
+        outline-width: thin;
+        box-sizing:content-box;
+        display:block;
+    }
+
+    input[type=button] {
+        text-indent:0px;
+        display:inline-block;
+        color:#14396a;
+        font-weight:normal;
+        font-style:normal;
+        font-size: medium;
+        height:25px;
+        width: 25px;
+        text-decoration:none;
+        text-align:center;
+        vertical-align:center;
+        margin-bottom:0px;
+        margin-top:0px;
+        border-radius: 5px; /* Скругление */
+        border: none;
+        background: none;
+    }
+
+    input[type=button]:hover {
+        background-color:#33B5E5;
+    }
+
+    input[type=button]:active {
+        position:relative;
+        top:1px;
+    }
+
+    input[type=button]:disabled {
+        background-color: #dcdcdc;
+        border:1px solid #dcdcdc;
+        display:inline-block;
+        color:#777777;
+    }
+
+    input.button-answer {
+        text-indent:0px;
+        display:inline-block;
+        color:#14396a;
+        font-weight:normal;
+        font-style:normal;
+        font-size: medium;
+        width: 50px;
+        height:25px;
+        text-decoration:none;
+        text-align:center;
+        vertical-align:center;
+        margin-bottom:0px;
+        margin-top:0px;
+        border-radius: 5px; /* Скругление */
+        background-color: #DFEEFF;
+    }
+
+    input.button-refresh {
+        background-image: url('https://appiens.github.io/images/refresh_small.png'); /* 16px x 16px */
+        background-color: transparent; /* make the button transparent */
+        background-repeat: no-repeat;  /* make the background image appear only once */
+        background-position: 4px 4px;  /* equivalent to 'top left' */
+    }
+
+    input.button-add-task {
+        background-image: url('https://appiens.github.io/images/add_task_small.png'); /* 16px x 16px */
+        background-color: transparent; /* make the button transparent */
+        background-repeat: no-repeat;  /* make the background image appear only once */
+        background-position: 3px 5px;  /* equivalent to 'top left' */
+    }
+
+    input.button-delete-task {
+        background-image: url('https://appiens.github.io/images/delete_small.png'); /* 16px x 16px */
+        background-color: transparent; /* make the button transparent */
+        background-repeat: no-repeat;  /* make the background image appear only once */
+        background-position: center;  /* equivalent to 'top left' */
+    }
+
+    input.button-save-task {
+        background-image: url('https://appiens.github.io/images/ok_small.png'); /* 16px x 16px */
+        background-color: transparent; /* make the button transparent */
+        background-repeat: no-repeat;  /* make the background image appear only once */
+        background-position: center;  /* equivalent to 'top left' */
+    }
+
+    input.button-cancel-task {
+        background-image: url('https://appiens.github.io/images/cancel_small.png'); /* 16px x 16px */
+        background-color: transparent; /* make the button transparent */
+        background-repeat: no-repeat;  /* make the background image appear only once */
+        background-position: center;  /* equivalent to 'top left' */
+    }
+
+    input.button-to-subtasks {
+        background-image: url('https://appiens.github.io/images/subtasks_small.png'); /* 16px x 16px */
+        background-color: transparent; /* make the button transparent */
+        background-repeat: no-repeat;  /* make the background image appear only once */
+        background-position: center;  /* equivalent to 'top left' */
+    }
+
+    textarea {
+        resize: vertical;
+    }
+
+    a, a:hover {
+        text-decoration: none;
+        color: #666666;
+    }
+
+    td {
+        padding-top: 5px;
+    }
+
+    ul#navWrapper {
+        border: 0 black dashed;
+        margin-left: 9px;
+        <!--float: none;-->
+    }
+
+    ul#navWrapper li {
+        border: 0 red dashed;
+        float: left;
+        list-style: none;
+        margin-right: 0.75em;
+        background-color: #DDD;
+        padding-left: 0;
+    }
+
+    ul#navWrapper li li {
+        border: 0 black dashed;
+        float: none;
+        margin-left: -5px;
+        margin-top: 0px;
+    }
+
+    ul#navWrapper li li:first-child {
+        margin-top: 1px;
+    }
+
+    ul#navWrapper ul {
+        display: none;
+        position: absolute;
+        background-color: #FFF;
+    }
+
+    ul#navWrapper li:hover ul {
+        display: block;
+    }
+
+    ul#navWrapper a {
+        display: block;
+        color: black;
+        text-decoration: none;
+    }
+
+    ul#navWrapper li:hover {
+        background-color: #33B5E5;
+    }
+  </style>
+  <script type="text/javascript" src="https://appiens.github.io/javascript/CollapsibleLists.js"></script>
+  <script type="text/javascript" src="https://appiens.github.io/javascript/shindig.js"></script>
+  <script type="text/javascript" src="https://appiens.github.io/javascript/WinFuncs.js"></script>
+  <script type="text/javascript" src="https://appiens.github.io/javascript/DateTimeClass.js"></script>
+  <script type="text/javascript">
+  
+    var taskLists = []; // полный список задач
+    var taskListsTmp = [];  // список обновлений, получаемый каждый "интервал запроса"
+    var errorOccured = false; // признак ошибки при полной загрузке данных
+    var errorOccuredTmp = false; // признак ошибки при загрузке обновлений (lastUpdated)
+    var timeLastAsk; // время последнего дополнительного запроса
+    var requestInterval = 5 * 60 * 1000; // интервал запросов обновлений (мс)
+    var timerFetchNewData = -1; // таймер для загрузки обновлений с сервера
+
+    function startGadget() {
+        console.log('starting gadget 11:30');
+        init(makePOSTRequest);
+        $('button-refresh').addEventListener('click', fetchDataAll);
+        $('img-daybyday-add').addEventListener('click', openDayByDayPage);
+        $('a-err-link').addEventListener('click', openQuestionPage);
+        $("button-expand").addEventListener('click', showHideDetails);
+        $("button-collapse").addEventListener('click', showHideDetails);
+        fetchDataAll();
+    }
+
+    function fetchDataAll() {
+        errorOccured = false;
+
+        // Break the updates cycle
+        if (timerFetchNewData != -1) {
+            clearTimeout(timerFetchNewData);
+            timerFetchNewData = -1;
+        }
+
+        // Clear the list
+        var ulMain = document.getElementById('listId');
+
+        while( ulMain.firstChild ){
+            ulMain.removeChild( ulMain.firstChild );
+        }
+
+        // Hide err section
+         showOneSection('main');
+
+        fetchData(OnFetchDataDoneAll);
+    }
+
+    function fetchOnlyNewData() {
+        var d = new Date();
+        console.log(d + ' fetchOnlyNewData ' + shindig.auth.getSecurityToken());
+        errorOccuredTmp = false;
+        fetchData(OnFetchDataDoneNew);
+    }
+
+    function openDayByDayPage() {
+        window.open("https://play.google.com/store/apps/details?id=ru.infteh.organizer.trial", "_blank", null);
+    }
+
+    function openQuestionPage() {
+         window.open($('a-err-link').href, "_blank", null);
+    }
+
+    function showHideDetails() {
+        var isHidden = document.getElementById("div-details").style.display == 'none';
+
+        if (isHidden) {
+            $("span-showhide").innerHTML = "Hide details";
+            $("button-expand").style.display = 'none';
+            $("button-collapse").style.display = '';
+            $("div-details").style.display = '';
+        }
+        else {
+            $("span-showhide").innerHTML = "Show details";
+            $("button-expand").style.display = '';
+            $("button-collapse").style.display = 'none';
+            $("div-details").style.display = 'none';
+        }
+    }
+
+    function showError(shortText, descrText, link, linkText) {
+         link = link || '#';
+         linkText = linkText || '';
+
+         $('div-details').innerText = descrText;
+         $('div-error-msg').innerText = shortText;
+         $('a-err-link').href =  link;
+         $('a-err-link').innerText = linkText;
+         showOneSection('error');
+    }
+
+    function OnFetchDataDoneAll(response) {
+        if (response.oauthApprovalUrl) {
+          // Create the popup handler. The onOpen function is called when the user
+          // opens the popup window. The onClose function is called when the popup
+          // window is closed.
+          var popup = shindig.oauth.popup({
+            destination: response.oauthApprovalUrl,
+            windowOptions: null,
+            onOpen: function() { showOneSection('waiting'); },
+            onClose: function() { fetchDataAll(); }
+          });
+          // Use the popup handler to attach onclick handlers to UI elements.  The
+          // createOpenerOnClick() function returns an onclick handler to open the
+          // popup window.  The createApprovedOnClick function returns an onclick
+          // handler that will close the popup window and attempt to fetch the user's
+          // data again.
+          var personalize = document.getElementById('personalize');
+          personalize.onclick = popup.createOpenerOnClick();
+          var approvaldone = document.getElementById('approvaldone');
+          approvaldone.onclick = popup.createApprovedOnClick();
+          showOneSection('approval');
+        } else if (response.data) {
+                 taskLists = [];
+                 taskLists = response.data.items;
+                 for(var i=0; i< taskLists.length; i++) {
+                    taskLists[i].isLoading = true;
+                    getTasksForTaskList(taskLists[i]);
+                 }
+            }
+         else {
+                // $('div-details').innerText = 'OAuth error: ' + response.oauthError + ': ' + response.oauthErrorText;
+                // $('div-error-msg').innerText = getLangValue('msg_error_occured');
+                // showOneSection('error');
+                showError(getLangValue('msg_error_occured'), 'OAuth error: ' + response.oauthError + ': ' + response.oauthErrorText);
+                errorOccured = true;
+        }
+    }
+
+    function OnFetchDataDoneNew(response) {
+        if (response.oauthApprovalUrl) {
+           // сюда не должны попадать вообще
+        } else if (response.data) {
+
+                 // responseCounter = 0; //счётчик поступивших ответов на запросы о тасках
+                 taskListsTmp = response.data.items;
+                 for(var i=0; i< taskListsTmp.length; i++) {
+                    taskListsTmp[i].isLoading = true;
+                    getTasksForTaskListTmp(taskListsTmp[i]);
+                 }
+            }
+        else {
+               taskListsTmp = null;
+              // $('div-details').innerText = 'OAuth error: ' + response.oauthError + ': ' + response.oauthErrorText;
+              // $('div-error-msg').innerText = getLangValue('msg_error_hour');
+              //  showOneSection('error');
+               showError(getLangValue('msg_error_hour'),
+                         'OAuth error: ' + response.oauthError + ': ' + response.oauthErrorText,
+                         'https://github.com/Appiens/daybyday_gadget/issues/1',
+                         getLangValue('msg_help_us'));
+
+               console.log('Error loading task lists');
+        }
+
+        timerFetchNewData = setTimeout(fetchOnlyNewData , requestInterval);
+    }
+
+    // Invoke makeRequest() to fetch data from the service provider endpoint.
+    // Depending on the results of makeRequest, decide which version of the UI
+    // to ask showOneSection() to display. If user has approved access to his
+    // or her data, display data.
+    // If the user hasn't approved access yet, response.oauthApprovalUrl contains a
+    // URL that includes a Google-supplied request token. This is presented in the 
+    // gadget as a link that the user clicks to begin the approval process. 
+       
+    function fetchData(onDone) {
+
+        var params = {};
+        url = "https://www.googleapis.com/tasks/v1/users/@me/lists?key=" + API_KEY + "&fields=items(id%2Ctitle%2Cupdated)";
+        params[gadgets.io.RequestParameters.CONTENT_TYPE] = gadgets.io.ContentType.JSON;
+        params[gadgets.io.RequestParameters.AUTHORIZATION] = gadgets.io.AuthorizationType.OAUTH;
+        params[gadgets.io.RequestParameters.OAUTH_SERVICE_NAME] = "google";
+        params[gadgets.io.RequestParameters.OAUTH_USE_TOKEN] = "always";
+        params[gadgets.io.RequestParameters.METHOD] = gadgets.io.MethodType.GET;
+
+        gadgets.io.makeRequest(url, onDone, params);
+    }
+
+    function getTasksForTaskList(taskList) {
+        if (errorOccured) {
+           return;
+        }
+
+        fetchDataTaskList(taskList, function (response) {
+        if (response.oauthApprovalUrl) {
+          // сюда попадать вообще не должны
+        } else if (response.data) {
+           taskList.isLoading = false;
+           taskList.tasks = response.data.items;
+
+           if (allTasksLoaded(taskLists)) {
+              generateList(taskLists);
+              CollapsibleLists.applyTo(document.getElementById('listId'));
+              showOneSection('main');
+              // alert('done');
+
+              setLastUpdatedTaskList(taskLists);
+              setTimeLastAsk();
+              timerFetchNewData = setTimeout(fetchOnlyNewData , requestInterval);
+           }
+        } else {
+            // $('div-details').innerText = 'OAuth error: ' + response.oauthError + ': ' + response.oauthErrorText;
+            // $('div-error-msg').innerText = getLangValue('msg_error_occured');
+            // showOneSection('error');
+             showError(getLangValue('msg_error_occured'), 'OAuth error: ' + response.oauthError + ': ' + response.oauthErrorText);
+            errorOccured = true;
+        }
+      }, "&showCompleted=true");
+    }
+
+    function getTasksForTaskListTmp(taskList) {
+
+        fetchDataTaskList(taskList, function (response) {
+            // responseCounter++;
+            if (response.oauthApprovalUrl) {
+                // сюда попадать вообще не должны
+            }
+            else if (response.data) {
+                taskList.isLoading = false;
+                taskList.tasks = response.data.items;
+                console.log("Good result for " + taskList.title);
+
+                if (allTasksLoaded(taskListsTmp)) {
+                    processTmpList(taskListsTmp);
+
+                    // если отображается ошибка, нужно отобразить main
+                    if  (document.getElementById('error').style.display == "block") {
+                       showOneSection('main');
+                    }
+
+                    setTimeLastAsk();
+                }
+            }
+            else {
+                    taskListsTmp = null;
+                    // $('div-details').innerText = 'OAuth error: ' + response.oauthError + ': ' + response.oauthErrorText;
+                    // $('div-error-msg').innerText = getLangValue('msg_error_hour');
+                    // showOneSection('error');
+                    showError(getLangValue('msg_error_hour'),
+                         'OAuth error: ' + response.oauthError + ': ' + response.oauthErrorText,
+                         'https://github.com/Appiens/daybyday_gadget/issues/1',
+                         getLangValue('msg_help_us'));
+
+                    console.log("Error for " + taskList.title);
+                    errorOccuredTmp = true;
+            }
+
+      }, "&showDeleted=true&updatedMin=" + timeLastAsk);
+    }
+    
+    function fetchDataTaskList(taskList, onDone, options) {
+        var params = {};
+	    url = "https://www.googleapis.com/tasks/v1/lists/" + taskList.id + "/tasks?key=" + API_KEY + options;
+	    console.log(url);
+        params[gadgets.io.RequestParameters.CONTENT_TYPE] = gadgets.io.ContentType.JSON;
+        params[gadgets.io.RequestParameters.AUTHORIZATION] = gadgets.io.AuthorizationType.OAUTH;
+        params[gadgets.io.RequestParameters.OAUTH_SERVICE_NAME] = "google";
+        params[gadgets.io.RequestParameters.OAUTH_USE_TOKEN] = "always";
+        params[gadgets.io.RequestParameters.METHOD] = gadgets.io.MethodType.GET;
+ 
+        gadgets.io.makeRequest(url, onDone, params);
+   
+    }
+
+    function setTimeLastAsk() {
+        var dateStart = new MyDate();
+        var timeStart = new MyTime();
+        timeLastAsk = dateStart.toInputValue() + timeStart.toTimeWithTimeZone();
+        console.log(timeLastAsk);
+        timeLastAsk = timeLastAsk.split(':').join('%3A');
+        console.log(timeLastAsk);
+        timeLastAsk = timeLastAsk.split('+').join('%2B');
+        console.log(timeLastAsk);
+    }
+
+    // tl - task lists
+    function allTasksLoaded(tl) {
+        var i;
+        for(var i=0; i< tl.length; i++) {
+            if (tl[i].isLoading) {
+                break;
+            }
+        }
+
+        return i == tl.length;
+    }
+    
+   function makePOSTRequest(url, postdata, callback, method) {
+   	    var params = {};
+   	    var methodType;
+   	    switch (method) {
+            case "PUT":
+                methodType = gadgets.io.MethodType.PUT;
+                break;
+            case "POST":
+                methodType = gadgets.io.MethodType.POST;
+                break;
+            case "DELETE":
+                methodType = gadgets.io.MethodType.DELETE;
+                break;
+            default:
+                methodType = gadgets.io.MethodType.PUT;
+        }
+
+   	    params[gadgets.io.RequestParameters.CONTENT_TYPE] = gadgets.io.ContentType.JSON;
+   	    params[gadgets.io.RequestParameters.METHOD] = methodType; //gadgets.io.MethodType.PUT;
+   	    params[gadgets.io.RequestParameters.HEADERS] = {'Content-Type': 'application/json'}
+        params[gadgets.io.RequestParameters.POST_DATA]= postdata;
+   	    params[gadgets.io.RequestParameters.AUTHORIZATION] = gadgets.io.AuthorizationType.OAUTH;
+   	    params[gadgets.io.RequestParameters.OAUTH_SERVICE_NAME] = "google";
+   	    params[gadgets.io.RequestParameters.OAUTH_USE_TOKEN] = "always";
+   	    gadgets.io.makeRequest(url, callback, params);
+};
+
+    // Call () when gadget loads.
+    gadgets.util.registerOnLoadHandler(startGadget);
+  </script>
+
+  <div id="messageBox"></div>
+  <div id="footer">
+    <table cellpadding=0 width=100%>
+       <tr>
+        <td style="width: 15%; text-align:left; vertical-align:middle;">
+            <input type="button" id="button-refresh" name="button-refresh"  title="__MSG_action_refresh__" class="button-refresh"/>
+        </td>
+        <td style="width: 15%; text-align:left; vertical-align:middle;">
+            <input type="button" id="button-insert-task" name="button-insert-task" title="__MSG_action_insert_task__" class="button-add-task"/>
+        </td>
+        <td style="width: 70%; text-align: right; vertical-align:middle;">
+          <img id="img-daybyday-add" src="https://appiens.github.io/images/daybyday16.png" width="16" height="16" title="V1.0">
+        </td>
+       </tr>
+    </table>
+  </div>
+
+  <div id="main" style="display: none; height: 80%; overflow-y: scroll;">
+    <br>
+	<ul id="listId" class="collapsibleList"></ul>
+  </div>
+
+  <div id="error" style="display: none;">
+    <!--<label id="label-oauth-error" style="display:none;"></label>-->
+    <div id='div-error-msg'>__MSG_msg_error_occured__</div>
+    <a href="#" id="a-err-link"></a>
+    <table cellpadding=0>
+        <tr>
+            <td style="text-align:left; vertical-align:middle;">
+                <input type="button" id="button-expand" name="button-expand" value="&#x002B"/>
+
+            </td>
+            <td style="text-align:left; vertical-align:middle;">
+                <input type="button" id="button-collapse" name="button-collapse" value="&#x002D" style="display:none"/>
+            </td>
+            <td style="text-align:left; vertical-align:middle;">
+                 <span id="span-showhide" name="span-showhide">
+                    __MSG_msg_show_details__
+                </span>
+            </td>
+        </tr>
+    </table>
+    <div id='div-details' style="display:none; height: 80%; overflow-y: scroll;">
+    </div>
+  </div>
+
+  <div id="approval" style="display: none">
+    <br>
+    <a href="#" id="personalize">__MSG_personalize__</a>
+  </div>
+
+  <div id="waiting" style="display: none">
+    <br>
+    __MSG_approval_part_1__
+    <a href="#" id="approvaldone">__MSG_approval_part_2__</a>
+    __MSG_approval_part_3__
+  </div>
+
+  <div id="message" style="display: none">
+    <br>
+    <br>
+    <div id="div-msg-question"></div>
+    <br>
+    <table cellpadding=0 width=100%>
+                <tr>
+                    <td style="width: 33%; text-align:middle; vertical-align:middle;">
+                        <input type="button" id="button-answer-1" name="button-answer-1" class="button-answer"/>
+                    </td>
+                    <td style="width: 33%; text-align:middle; vertical-align:middle;">
+                        <input type="button" id="button-answer-2" name="button-answer-2" class="button-answer"/>
+                    </td>
+                    <td style="width: 33%; text-align:middle; vertical-align:middle;">
+                        <input type="button" id="button-answer-3" name="button-answer-3" class="button-answer"/>
+                    </td>
+                </tr>
+    </table>
+
+  </div>
+
+  <div id="watch" style="display: none">
+   <div id="footerWatch">
+        <table cellpadding=0 width=100%>
+                <tr>
+                    <td style="width: 70%; text-align:left; vertical-align:middle;">
+                        <input type="button" id="button-delete-task" name="button-delete-task" title="__MSG_action_delete_task__" class="button-delete-task"/>
+                    </td>
+                    <td style="width: 15%; text-align:right; vertical-align:middle;">
+                        <input type="button" id="button-save_task" name="button-save-task" title="__MSG_action_save_task__" class="button-save-task"/>
+                    </td>
+                    <td style="width: 15%; text-align:right; vertical-align:middle;">
+                        <input type="button" id="button-discard" name="button-discard" title="__MSG_action_discard__" class="button-cancel-task"/>
+                    </td>
+                </tr>
+    </table>
+    </div>
+     <table cellpadding=0 width=87%>
+                <tr>
+                    <td style="width: 7%; text-align:left; vertical-align:middle;">
+                         <input type="checkbox" id="checkbox-task-completed" name="checkbox-task-completed" checked="false" title="">
+                    </td>
+                    <td style="width: 93%; text-align:left; vertical-align:middle;font-size: small;">
+                        <label id="label-task-completed">__MSG_completed__</label>
+                    </td>
+                </tr>
+    </table>
+    <input type="text" id="input-task-name" name="input-task-name" placeholder="__MSG_title_default__"/>
+    <div id="div-status-images"></div>
+    <table cellpadding=0 width=87%>
+                <tr>
+                    <td style="width: 7%; text-align:left; vertical-align:middle;">
+                            <input type="checkbox" id="checkbox-with-date" name="checkbox-with-date" checked="true" title="">
+                    </td>
+                    <td style="width: 93%; text-align:left; vertical-align:middle;font-size: small;">
+                        <label id="label-task-date">__MSG_due_date__</label>
+                    </td>
+                </tr>
+    </table>
+    <input type="date" id="input-task-date" name="input-task-date" required>
+    <ul id="navWrapper">
+        <li>
+            <a id="a-move-to-list" href="#" aria-haspopup="true"></a>
+            <ul id="taskListsWatch">
+            </ul>
+        </li>
+    </ul>
+    <br>
+    <div id="div-notes" class="new-select-style-wpandyou">
+    <textarea name="input-task-comment" id="input-task-comment" rows="5" placeholder="__MSG_notes_default__"></textarea>
+    </div>
+    <div id="footerWatchDown">
+     <table cellpadding=0 align="right">
+     <tr>
+       <td style="text-align:left; vertical-align:middle;">
+           <input type="button" id="button-to-subtasks" name="button-to-subtasks"  title="__MSG_action_to_subtasks__" class="button-to-subtasks"/>
+       </td>
+     </tr>
+     </table>
+     </div>
+  </div>
+  ]]> 
+  </Content>
+</Module>
